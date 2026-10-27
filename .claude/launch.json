@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pixel-chefs",
+      "runtimeExecutable": "sf",
+      "runtimeArgs": ["dev", "--state-backend", "sqlite"],
+      "port": 4173
+    }
+  ]
+}
