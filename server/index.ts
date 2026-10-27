@@ -1,4 +1,4 @@
-import { boolean, capsule, endpoint, id, json, mutation, number, query, string, table } from "@spacefast/zero/server";
+import { boolean, capsule, endpoint, id, json, mutation, number, query, string, table, type ServerContext } from "@spacefast/zero/server";
 
 import {
   CODE_LETTERS,
@@ -293,10 +293,21 @@ export default capsule({
   },
 });
 
-type MutationCtx = Parameters<Parameters<typeof mutation>[0]>[0];
+// Helpers outside capsule() don't get schema-inferred row types, so rooms are typed by hand.
+type MutationCtx = ServerContext;
+type RoomRow = {
+  id: string;
+  code: string;
+  hostSeat: string;
+  status: string;
+  roundIndex: number;
+  totalRounds: number;
+  roundMs: number;
+  chefOrder: string;
+};
 
-async function hostRoom(ctx: MutationCtx, code: string, playerKey: string) {
-  const room = await ctx.db.rooms.withIndex("by_code", (r) => r.eq("code", cleanCode(code))).first();
+async function hostRoom(ctx: MutationCtx, code: string, playerKey: string): Promise<RoomRow> {
+  const room = (await ctx.db.rooms.withIndex("by_code", (r) => r.eq("code", cleanCode(code))).first()) as RoomRow | null;
   if (!room) throw new Error("No game with that code.");
   if (room.hostSeat !== seatOf(ctx, playerKey)) throw new Error("Only the host can do that.");
   return room;

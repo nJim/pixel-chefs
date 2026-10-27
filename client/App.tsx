@@ -1,5 +1,5 @@
 import { useQuery } from "@spacefast/zero/client";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import { cleanCode } from "../shared/scoring";
 import { syncClock } from "./clock";
@@ -61,7 +61,13 @@ function MuteButton() {
 }
 
 function GameScreen({ code, playerKey, onLeave }: { code: string; playerKey: string; onLeave: () => void }) {
-  const game = useQuery<Game | null>("game", code, playerKey);
+  const live = useQuery<Game | null>("game", code, playerKey);
+
+  // The live query can briefly report "loading" again while it refetches or
+  // reconnects; keep showing the last state for this room instead of blanking mid-round.
+  const last = useRef<{ code: string; game: Game | null } | null>(null);
+  if (live !== undefined) last.current = { code, game: live };
+  const game = live !== undefined ? live : last.current?.code === code ? last.current.game : undefined;
 
   // Each new screen starts at the top, so the photo and timer are always in view.
   const screen = game ? `${game.room.status}:${game.round?.id ?? ""}` : "";

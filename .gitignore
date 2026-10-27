@@ -6,3 +6,5 @@ dist/
 /.spacefast-*
 .spacefast/.spacefast-*
 .spacefast/.space-link-*.tmp
+.claude/
+.roster-exclude

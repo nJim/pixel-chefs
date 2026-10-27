@@ -3,7 +3,7 @@
 //   client/chef-images.ts   id -> square JPEG data URI, bundled with the client
 // Run with: npm run fetch-team
 import { createHash } from "node:crypto";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { parse } from "node-html-parser";
 import sharp from "sharp";
 
@@ -16,6 +16,15 @@ const opaqueId = (name) => createHash("sha256").update(`pixel-chefs:${name}`).di
 // Strip the ShortPixel CDN prefix to get the original upload.
 const originalUrl = (src) => src.replace(/^https:\/\/sp-ao\.shortpixel\.ai\/client\/[^/]+\//, "");
 
+// Optional, untracked list of names (one per line) to leave out of the roster.
+const EXCLUDE_FILE = ".roster-exclude";
+const excluded = new Set(
+  (await readFile(EXCLUDE_FILE, "utf8").catch(() => ""))
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#")),
+);
+
 const html = await (await fetch(TEAM_URL)).text();
 const cards = parse(html).querySelectorAll(".team_card");
 
@@ -26,7 +35,7 @@ for (const card of cards) {
   const name = card.querySelector("h4")?.text.trim();
   const title = card.querySelector(".job_title")?.text.trim() ?? "";
   const src = card.querySelector("img.lazyload")?.getAttribute("data-src");
-  if (!name || !src) continue;
+  if (!name || !src || excluded.has(name)) continue;
 
   const res = await fetch(originalUrl(src));
   if (!res.ok) throw new Error(`Failed to download ${name}: ${res.status}`);
