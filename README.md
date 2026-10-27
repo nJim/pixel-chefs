@@ -82,28 +82,14 @@ Four Kitchens site's design tokens.
 
 ## Architecture
 
-```mermaid
-sequenceDiagram
-    participant H as Host
-    participant P as Player(s)
-    participant S as Zero server + MySQL
+All game state lives on the server. Each client subscribes to a single live query and calls a few mutations:
 
-    H->>S: createRoom(nickname)
-    P->>S: joinRoom(code, nickname)
-    S-->>H: game query refreshes (lobby)
-    S-->>P: game query refreshes (lobby)
-    H->>S: startGame → round { startsAt, endsAt }
-    Note over H,P: Each client counts down and pixelates<br/>from server time (clock offset applied)
-    P->>S: submitAnswer(choice) → scored on server time
-    S-->>P: answeredIds updates (who's locked in)
-    alt everyone answered
-        S->>S: finish round
-    else time runs out
-        P->>S: endRound() — any client, server re-checks the deadline
-    end
-    S-->>H: reveal: picks, points, leaderboard
-    S-->>P: reveal: picks, points, leaderboard
-```
+1. **Lobby.** The host calls `createRoom` and players call `joinRoom`. Each call refreshes the `game` query on every connected device, so the player list updates live.
+2. **Round start.** The host calls `startGame`. The server picks the chefs and writes a round with server-time `startsAt` and `endsAt`.
+3. **During the round.** Each client counts down and steps through the pixel stages from those timestamps, adjusted by its measured clock offset. Nothing streams. Every device computes the same frame on its own.
+4. **Answering.** `submitAnswer` is scored on the server's clock. Other players only learn *that* you've locked in, not what you picked.
+5. **Round end.** When the last player answers, the server ends the round itself. If time runs out first, whichever client notices calls `endRound`, and the server checks the deadline before ending it.
+6. **Reveal.** Once the round has ended, the `game` query includes everyone's picks and points. The host advances with `nextRound`, and the last round leads to the podium.
 
 ```
 server/index.ts         Schema, the `game` live query, mutations, /api/time
