@@ -99,7 +99,7 @@ sequenceDiagram
     alt everyone answered
         S->>S: finish round
     else time runs out
-        P->>S: endRound() (any client; server re-checks the deadline)
+        P->>S: endRound() — any client, server re-checks the deadline
     end
     S-->>H: reveal: picks, points, leaderboard
     S-->>P: reveal: picks, points, leaderboard
