@@ -38,6 +38,11 @@ export const TEAM: Chef[] = [
     "title": "Senior Engineer"
   },
   {
+    "id": "913a65dc",
+    "name": "Edwin Torrez Barrera",
+    "title": "Backend Engineer"
+  },
+  {
     "id": "72b42aaa",
     "name": "Elia Milán",
     "title": "Principal and Chief Operating Officer"

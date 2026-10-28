@@ -23,7 +23,7 @@
     "deploy": "sf publish"
   },
   "dependencies": {
-    "@spacefast/zero": "0.5.0",
+    "@spacefast/zero": "^0.8.0",
     "preact": "10.29.7"
   },
   "devDependencies": {
